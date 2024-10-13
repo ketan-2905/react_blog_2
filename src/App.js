@@ -16,14 +16,13 @@ import EditPost from './pages/EditPost';
 
 import useWindoSize from './hooks/usewindoSize';
 
-const api = axios.create({
-  baseURL: 'http://localhost:3500'
-});
+
 
 function App() {
   const windoSize = useWindoSize()
+
   
-  const [posts, setPosts] = useState([])
+  const [posts, setPosts] = useState(JSON.parse(localStorage.getItem('posts')) || [])
   const [searchPost, setSearchPost] = useState('')
   const [searchPostResult, setSearchPostResult] = useState([])
 
@@ -37,17 +36,9 @@ function App() {
   const [editBody, setEditBody] = useState('')
 
   useEffect(() => {
-    const fetchPosts = async () => {
-      try {
-        const response = await api.get('/posts');
-        setPosts(response.data);
-      } catch (err) {
-        console.error('Error fetching posts:', err);
-      }
-    };
+    localStorage.setItem('posts' , JSON.stringify(posts))
+  },[posts])
 
-    fetchPosts();
-  }, []);
 
   useEffect(() => {
     const filterPost = posts.filter((post) => 
@@ -57,33 +48,23 @@ function App() {
     setSearchPostResult(filterPost.reverse());
   }, [posts, searchPost]);
 
-  const handleDelete = async (id) => {
-    try {
-      await api.delete(`/posts/${id}`);
-      const newPosts = posts.filter((post) => post.id !== id);
+  const handleDelete = (id) => {
+      const newPosts = posts.filter((post) => post.id !== id)
       setPosts(newPosts);
       navigate('/');
-    } catch (err) {
-      console.error('Error deleting post:', err);
-    }
+      localStorage.setItem('posts' , JSON.stringify(posts))
   };
 
   const handelEdit = async (e, id) => {
     e.preventDefault();
     const dateTime = format(new Date(), 'MMMM dd, yyyy pp');
     const updatedPost = { id, title: editTitle, datetime: dateTime, body: editBody };
-    
-    try {
-      const response = await api.put(`/posts/${id}`, updatedPost);
-      const newPosts = posts.map((post) => post.id === id ? response.data : post);
-      setPosts(newPosts);
-      setEditTitle('');
-      setEditBody('');
-      setTitle('');
-      navigate('/');
-    } catch (err) {
-      console.error('Error updating post:', err);
-    }
+    const newPosts = posts.map((post) => post.id === id ? updatedPost : post);
+    setPosts(newPosts);
+    setEditTitle('');
+    setEditBody('');
+    setTitle('');
+    navigate('/');
   };
 
   const handleSubmit = async (e) => {
@@ -91,16 +72,10 @@ function App() {
     const id = posts.length ? (parseInt(posts[posts.length - 1].id) + 1).toString() : "1";
     const dateTime = format(new Date(), 'MMMM dd, yyyy pp');
     const newPost = { id, title: postTitle, datetime: dateTime, body: postBody };
-
-    try {
-      const response = await api.post('/posts', newPost);
-      setPosts([...posts, response.data]);
-      setPostTitle('');
-      setPostBody('');
-      navigate('/');
-    } catch (err) {
-      console.error('Error creating post:', err);
-    }
+    setPosts([...posts, newPost]);
+    setPostTitle('');
+    setPostBody('');
+    navigate('/');
   };
 
   return (
