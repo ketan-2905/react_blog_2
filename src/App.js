@@ -20,6 +20,7 @@ import useWindoSize from './hooks/usewindoSize';
 
 function App() {
   const windoSize = useWindoSize()
+  const ketan = "Ketan"
 
   
   const [posts, setPosts] = useState(JSON.parse(localStorage.getItem('posts')) || [])
